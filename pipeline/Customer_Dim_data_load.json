@@ -1,5 +1,5 @@
 {
-	"name": "Customer_data_movement_p",
+	"name": "Customer_Dim_data_load",
 	"properties": {
 		"activities": [
 			{
