@@ -23,10 +23,6 @@
 			"sinks": [],
 			"transformations": [
 				{
-					"name": "conditionsplit",
-					"description": "Excluding Bad records"
-				},
-				{
 					"name": "DerivingColumns",
 					"description": "Deriving new column based on old columns"
 				},
@@ -36,6 +32,9 @@
 				{
 					"name": "AlterRowForUpdate",
 					"description": "Inserting, Updating, deleting and/or upserting using expression on column \n'SynapseFacttable@Booking_id'"
+				},
+				{
+					"name": "finalcolumns"
 				}
 			],
 			"scriptLines": [
@@ -80,9 +79,7 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table',",
 				"     staged: true) ~> SynapeFacttable",
-				"BookingData split(check_in_date>check_out_date,",
-				"     disjoint: false) ~> conditionsplit@(Basicchecks, AcceptedRecords)",
-				"conditionsplit@AcceptedRecords derive(booking_id = booking_id,",
+				"BookingData derive(booking_id = booking_id,",
 				"          property_id = property_id,",
 				"          customer_id = customer_id,",
 				"          owner_id = owner_id,",
@@ -97,14 +94,52 @@
 				"          stay_duration = toTimestamp(check_out_date) - toTimestamp(check_in_date),",
 				"          booking_year = year(booking_date),",
 				"          booking_month = month(booking_date),",
-				"          timestamp = timestamp) ~> DerivingColumns",
+				"          timestamp = timestamp,",
+				"     partitionBy('hash', 1)) ~> DerivingColumns",
 				"DerivingColumns, SynapeFacttable lookup(DerivingColumns@booking_id == SynapeFacttable@booking_id,",
 				"     multiple: false,",
 				"     pickup: 'first',",
 				"     desc(SynapeFacttable@booking_id, true),",
 				"     broadcast: 'auto')~> lookupSynapse",
 				"lookupSynapse alterRow(insertIf(isNull(SynapeFacttable@booking_id)),",
-				"     upsertIf(not(isNull(SynapeFacttable@booking_id)))) ~> AlterRowForUpdate"
+				"     upsertIf(not(isNull(SynapeFacttable@booking_id)))) ~> AlterRowForUpdate",
+				"AlterRowForUpdate select(mapColumn(",
+				"          booking_id = DerivingColumns@booking_id,",
+				"          property_id = DerivingColumns@property_id,",
+				"          customer_id = DerivingColumns@customer_id,",
+				"          owner_id = DerivingColumns@owner_id,",
+				"          check_in_date = DerivingColumns@check_in_date,",
+				"          check_out_date = DerivingColumns@check_out_date,",
+				"          booking_date = DerivingColumns@booking_date,",
+				"          amount = DerivingColumns@amount,",
+				"          currency = DerivingColumns@currency,",
+				"          property_location,",
+				"          timestamp = DerivingColumns@timestamp,",
+				"          city = DerivingColumns@city,",
+				"          country = DerivingColumns@country,",
+				"          full_address = DerivingColumns@full_address,",
+				"          stay_duration = DerivingColumns@stay_duration,",
+				"          booking_year = DerivingColumns@booking_year,",
+				"          booking_month = DerivingColumns@booking_month,",
+				"          booking_id = SynapeFacttable@booking_id,",
+				"          property_id = SynapeFacttable@property_id,",
+				"          customer_id = SynapeFacttable@customer_id,",
+				"          owner_id = SynapeFacttable@owner_id,",
+				"          check_in_date = SynapeFacttable@check_in_date,",
+				"          check_out_date = SynapeFacttable@check_out_date,",
+				"          booking_date = SynapeFacttable@booking_date,",
+				"          amount = SynapeFacttable@amount,",
+				"          currency = SynapeFacttable@currency,",
+				"          city = SynapeFacttable@city,",
+				"          country = SynapeFacttable@country,",
+				"          full_address = SynapeFacttable@full_address,",
+				"          stay_duration = SynapeFacttable@stay_duration,",
+				"          booking_year = SynapeFacttable@booking_year,",
+				"          booking_month = SynapeFacttable@booking_month,",
+				"          timestamp = SynapeFacttable@timestamp",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> finalcolumns"
 			]
 		}
 	}
