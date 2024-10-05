@@ -28,6 +28,9 @@
 		},
 		"AirBnB_Synapse_ms_properties_typeProperties_database": {
 			"value": "AirBnB_Sql_pool"
+		},
+		"Githubfile_using_http_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com"
 		}
 	}
 }

@@ -39,6 +39,10 @@
 			"type": "string",
 			"defaultValue": "AirBnB_Sql_pool"
 		},
+		"Githubfile_using_http_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -89,6 +93,9 @@
 					},
 					"AirBnB_Synapse_ms_properties_typeProperties_database": {
 						"value": "[parameters('AirBnB_Synapse_ms_properties_typeProperties_database')]"
+					},
+					"Githubfile_using_http_properties_typeProperties_url": {
+						"value": "[parameters('Githubfile_using_http_properties_typeProperties_url')]"
 					}
 				}
 			},
