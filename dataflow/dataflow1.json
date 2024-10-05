@@ -1,0 +1,46 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Booking_src_Cosmos",
+						"type": "DatasetReference"
+					},
+					"name": "BookingData",
+					"description": "Bookings data from cosmos DB"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "CustomerIdCheckSplit",
+					"description": "Customer Id should always be greater than zero."
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          booking_id as string,",
+				"          property_id as string,",
+				"          customer_id as integer,",
+				"          owner_id as string,",
+				"          check_in_date as date,",
+				"          check_out_date as date,",
+				"          booking_date as date,",
+				"          amount as double,",
+				"          currency as string,",
+				"          property_location as (city as string, country as string),",
+				"          timestamp as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     format: 'document') ~> BookingData",
+				"BookingData split(customer_id < 0,",
+				"     disjoint: true) ~> CustomerIdCheckSplit@(Customeridcheck, AcceptedRecords)"
+			]
+		}
+	}
+}
