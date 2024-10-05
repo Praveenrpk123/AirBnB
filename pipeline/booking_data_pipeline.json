@@ -19,6 +19,13 @@
 						"referenceName": "Bookings_DataFlow",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "AirBnBAdls",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "customersdata/Synapse Stage"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
