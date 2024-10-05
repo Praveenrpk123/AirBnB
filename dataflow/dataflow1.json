@@ -26,7 +26,11 @@
 						"referenceName": "bookings_fact_synapse",
 						"type": "DatasetReference"
 					},
-					"name": "Dataload"
+					"name": "Dataload",
+					"rejectedDataLinkedService": {
+						"referenceName": "AirBnBAdls",
+						"type": "LinkedServiceReference"
+					}
 				}
 			],
 			"transformations": [
@@ -161,8 +165,6 @@
 				"     allowCopyCommand: true,",
 				"     dateFormat:'dd/MM/yyyy',",
 				"     timestampFormat:'MM/dd/yyyy HH:mm:ss',",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          booking_id,",
