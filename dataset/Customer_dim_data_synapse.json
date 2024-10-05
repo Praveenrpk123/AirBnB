@@ -2,7 +2,7 @@
 	"name": "Customer_dim_data_synapse",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AirBnB_Synapse",
+			"referenceName": "AirBnB_Synapse_ms",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
