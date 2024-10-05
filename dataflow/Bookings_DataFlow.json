@@ -165,6 +165,7 @@
 				"     allowCopyCommand: true,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          booking_id,",
@@ -182,7 +183,8 @@
 				"          stay_duration,",
 				"          booking_year,",
 				"          booking_month,",
-				"          timestamp",
+				"          timestamp,",
+				"          booking_id",
 				"     ),",
 				"     partitionBy('hash', 1)) ~> Synapsesink"
 			]
