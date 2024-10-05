@@ -1,0 +1,12 @@
+{
+	"name": "AirBnb_cosmosDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "CosmosDb",
+		"typeProperties": {
+			"connectionString": "AccountEndpoint=https://bookingdatacosmos.documents.azure.com:443/;Database=AirBnB;",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDIwOTlCMTBCLTQxOEQtNDEzRi1BNDYzLUJGMkQ5MDBGMTQ3RV9jMzhkZmIwOC1kOTY0LTQ4NmMtOWU1Yy0zN2E2NjgyNWY5NzEiDQp9"
+		}
+	}
+}
