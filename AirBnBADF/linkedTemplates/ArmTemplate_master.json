@@ -7,9 +7,29 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "AirBnBADF"
 		},
+		"AirBnB_Synapse_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AirBnB_Synapse'"
+		},
+		"AirBnb_cosmosDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AirBnb_cosmosDB'"
+		},
 		"AirBnBAdls_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://airbnbstracc.dfs.core.windows.net/"
+		},
+		"AirBnB_Synapse_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "airbnb-synapse-worspace.sql.azuresynapse.net"
+		},
+		"AirBnB_Synapse_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AirBnB_Sql_pool"
+		},
+		"AirBnB_Synapse_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladminuser"
 		},
 		"containerUri": {
 			"type": "string",
@@ -38,8 +58,23 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"AirBnB_Synapse_password": {
+						"value": "[parameters('AirBnB_Synapse_password')]"
+					},
+					"AirBnb_cosmosDB_connectionString": {
+						"value": "[parameters('AirBnb_cosmosDB_connectionString')]"
+					},
 					"AirBnBAdls_properties_typeProperties_url": {
 						"value": "[parameters('AirBnBAdls_properties_typeProperties_url')]"
+					},
+					"AirBnB_Synapse_properties_typeProperties_server": {
+						"value": "[parameters('AirBnB_Synapse_properties_typeProperties_server')]"
+					},
+					"AirBnB_Synapse_properties_typeProperties_database": {
+						"value": "[parameters('AirBnB_Synapse_properties_typeProperties_database')]"
+					},
+					"AirBnB_Synapse_properties_typeProperties_userName": {
+						"value": "[parameters('AirBnB_Synapse_properties_typeProperties_userName')]"
 					}
 				}
 			},

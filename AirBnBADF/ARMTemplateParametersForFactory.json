@@ -5,8 +5,23 @@
 		"factoryName": {
 			"value": "AirBnBADF"
 		},
+		"AirBnB_Synapse_password": {
+			"value": ""
+		},
+		"AirBnb_cosmosDB_connectionString": {
+			"value": ""
+		},
 		"AirBnBAdls_properties_typeProperties_url": {
 			"value": "https://airbnbstracc.dfs.core.windows.net/"
+		},
+		"AirBnB_Synapse_properties_typeProperties_server": {
+			"value": "airbnb-synapse-worspace.sql.azuresynapse.net"
+		},
+		"AirBnB_Synapse_properties_typeProperties_database": {
+			"value": "AirBnB_Sql_pool"
+		},
+		"AirBnB_Synapse_properties_typeProperties_userName": {
+			"value": "sqladminuser"
 		}
 	}
 }
