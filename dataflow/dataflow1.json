@@ -94,9 +94,10 @@
 				"          booking_year = year(booking_date),",
 				"          booking_month = month(booking_date),",
 				"          timestamp = timestamp) ~> DerivingColumns",
-				"DerivingColumns, BookingData lookup(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"DerivingColumns, SynapeFacttable lookup(DerivingColumns@booking_id == SynapeFacttable@booking_id,",
 				"     multiple: false,",
-				"     pickup: 'any',",
+				"     pickup: 'first',",
+				"     desc(SynapeFacttable@booking_id, true),",
 				"     broadcast: 'auto')~> lookupSynapse"
 			]
 		}
