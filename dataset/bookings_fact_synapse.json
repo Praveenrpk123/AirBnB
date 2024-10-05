@@ -2,7 +2,7 @@
 	"name": "bookings_fact_synapse",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AirBnB_Synapse",
+			"referenceName": "AirBnB_Synapse_ms",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
@@ -84,7 +84,7 @@
 		],
 		"typeProperties": {
 			"schema": "airbnb",
-			"table": "bookings_fact"
+			"table": "customer_dim"
 		}
 	}
 }
