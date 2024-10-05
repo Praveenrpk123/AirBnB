@@ -22,6 +22,12 @@
 		},
 		"AirBnB_Synapse_properties_typeProperties_userName": {
 			"value": "sqladminuser"
+		},
+		"AirBnB_Synapse_ms_properties_typeProperties_server": {
+			"value": "airbnb-synapse-worspace.sql.azuresynapse.net"
+		},
+		"AirBnB_Synapse_ms_properties_typeProperties_database": {
+			"value": "AirBnB_Sql_pool"
 		}
 	}
 }

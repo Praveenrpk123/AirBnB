@@ -30,6 +30,14 @@
 		"AirBnB_Synapse_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladminuser"
+		},
+		"AirBnB_Synapse_ms_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "airbnb-synapse-worspace.sql.azuresynapse.net"
+		},
+		"AirBnB_Synapse_ms_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AirBnB_Sql_pool"
 		}
 	},
 	"variables": {
@@ -67,6 +75,23 @@
 						"type": "SecureString",
 						"value": "[parameters('AirBnB_Synapse_password')]"
 					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AirBnB_Synapse_ms')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('AirBnB_Synapse_ms_properties_typeProperties_server')]",
+					"database": "[parameters('AirBnB_Synapse_ms_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SystemAssignedManagedIdentity"
 				}
 			},
 			"dependsOn": []
@@ -183,7 +208,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AirBnB_Synapse",
+					"referenceName": "AirBnB_Synapse_ms",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
@@ -270,7 +295,7 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AirBnB_Synapse')]"
+				"[concat(variables('factoryId'), '/linkedServices/AirBnB_Synapse_ms')]"
 			]
 		},
 		{
@@ -307,7 +332,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AirBnB_Synapse",
+					"referenceName": "AirBnB_Synapse_ms",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
@@ -389,11 +414,11 @@
 				],
 				"typeProperties": {
 					"schema": "airbnb",
-					"table": "bookings_fact"
+					"table": "customer_dim"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AirBnB_Synapse')]"
+				"[concat(variables('factoryId'), '/linkedServices/AirBnB_Synapse_ms')]"
 			]
 		},
 		{
@@ -648,6 +673,285 @@
 				"[concat(variables('factoryId'), '/datasets/Customer_dim_data_synapse')]",
 				"[concat(variables('factoryId'), '/datasets/Customer_archieve_data')]",
 				"[concat(variables('factoryId'), '/linkedServices/AirBnBAdls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Bookings_DataFlow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Booking_src_Cosmos",
+								"type": "DatasetReference"
+							},
+							"name": "BookingData",
+							"description": "Bookings data from cosmos DB"
+						},
+						{
+							"dataset": {
+								"referenceName": "bookings_fact_synapse",
+								"type": "DatasetReference"
+							},
+							"name": "SynapeFacttable"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "bookings_fact_synapse",
+								"type": "DatasetReference"
+							},
+							"name": "Dataload",
+							"rejectedDataLinkedService": {
+								"referenceName": "AirBnBAdls",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"transformations": [
+						{
+							"name": "DerivingColumns",
+							"description": "Deriving new column based on old columns"
+						},
+						{
+							"name": "lookupSynapse"
+						},
+						{
+							"name": "AlterRowForUpdate",
+							"description": "Inserting, Updating, deleting and/or upserting using expression on column \n'SynapseFacttable@Booking_id'"
+						},
+						{
+							"name": "finalcolumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          booking_id as string,",
+						"          property_id as string,",
+						"          customer_id as integer,",
+						"          owner_id as string,",
+						"          check_in_date as date,",
+						"          check_out_date as date,",
+						"          booking_date as timestamp,",
+						"          amount as double,",
+						"          currency as string,",
+						"          property_location as (city as string, country as string),",
+						"          timestamp as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     format: 'document') ~> BookingData",
+						"source(output(",
+						"          booking_id as string,",
+						"          property_id as string,",
+						"          customer_id as integer,",
+						"          owner_id as string,",
+						"          check_in_date as date,",
+						"          check_out_date as date,",
+						"          booking_date as timestamp,",
+						"          amount as double,",
+						"          currency as string,",
+						"          city as string,",
+						"          country as string,",
+						"          full_address as string,",
+						"          stay_duration as long,",
+						"          booking_year as integer,",
+						"          booking_month as integer,",
+						"          timestamp as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table',",
+						"     staged: true) ~> SynapeFacttable",
+						"BookingData derive(booking_id = booking_id,",
+						"          property_id = property_id,",
+						"          customer_id = customer_id,",
+						"          owner_id = owner_id,",
+						"          check_in_date = check_in_date,",
+						"          check_out_date = check_out_date,",
+						"          booking_date = booking_date,",
+						"          amount = case(currency != 'INR', amount*80 , amount),",
+						"          currency = \"INR\",",
+						"          city = property_location.city,",
+						"          country = property_location.country,",
+						"          full_address = concatWS(',',property_location.city,property_location.country),",
+						"          stay_duration = check_in_date - check_out_date,",
+						"          booking_year = year(booking_date),",
+						"          booking_month = month(booking_date),",
+						"          timestamp = timestamp,",
+						"     partitionBy('hash', 1)) ~> DerivingColumns",
+						"DerivingColumns, SynapeFacttable lookup(DerivingColumns@booking_id == SynapeFacttable@booking_id,",
+						"     multiple: false,",
+						"     pickup: 'first',",
+						"     desc(SynapeFacttable@booking_id, true),",
+						"     broadcast: 'auto')~> lookupSynapse",
+						"lookupSynapse alterRow(insertIf(isNull(SynapeFacttable@booking_id)),",
+						"     upsertIf(not(isNull(SynapeFacttable@booking_id)))) ~> AlterRowForUpdate",
+						"AlterRowForUpdate select(mapColumn(",
+						"          booking_id = DerivingColumns@booking_id,",
+						"          property_id = DerivingColumns@property_id,",
+						"          customer_id = DerivingColumns@customer_id,",
+						"          owner_id = DerivingColumns@owner_id,",
+						"          check_in_date = DerivingColumns@check_in_date,",
+						"          check_out_date = DerivingColumns@check_out_date,",
+						"          booking_date = DerivingColumns@booking_date,",
+						"          amount = DerivingColumns@amount,",
+						"          currency = DerivingColumns@currency,",
+						"          timestamp = DerivingColumns@timestamp,",
+						"          city = DerivingColumns@city,",
+						"          country = DerivingColumns@country,",
+						"          full_address = DerivingColumns@full_address,",
+						"          stay_duration = DerivingColumns@stay_duration,",
+						"          booking_year = DerivingColumns@booking_year,",
+						"          booking_month = DerivingColumns@booking_month",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> finalcolumns",
+						"finalcolumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          booking_id as string,",
+						"          property_id as string,",
+						"          customer_id as integer,",
+						"          owner_id as string,",
+						"          check_in_date as date,",
+						"          check_out_date as date,",
+						"          booking_date as timestamp,",
+						"          amount as double,",
+						"          currency as string,",
+						"          city as string,",
+						"          country as string,",
+						"          full_address as string,",
+						"          stay_duration as long,",
+						"          booking_year as integer,",
+						"          booking_month as integer,",
+						"          timestamp as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     keys:['customer_id'],",
+						"     format: 'table',",
+						"     staged: true,",
+						"     allowCopyCommand: true,",
+						"     dateFormat:'dd/MM/yyyy',",
+						"     timestampFormat:'MM/dd/yyyy HH:mm:ss',",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          booking_id,",
+						"          property_id,",
+						"          customer_id,",
+						"          owner_id,",
+						"          check_in_date,",
+						"          check_out_date,",
+						"          booking_date,",
+						"          amount,",
+						"          currency,",
+						"          city,",
+						"          country,",
+						"          full_address,",
+						"          stay_duration,",
+						"          booking_year,",
+						"          booking_month,",
+						"          timestamp",
+						"     )) ~> Dataload"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Booking_src_Cosmos')]",
+				"[concat(variables('factoryId'), '/datasets/bookings_fact_synapse')]",
+				"[concat(variables('factoryId'), '/linkedServices/AirBnBAdls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/booking_data_pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Bookings_DataFlow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Bookings_DataFlow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"BookingData": {},
+									"SynapeFacttable": {},
+									"Dataload": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "AirBnBAdls",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "customersdata/Synapse Stage"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "TriggerStoredProcedure",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Bookings_DataFlow",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[airbnb].[BookingAggregation]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AirBnB_Synapse_ms",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Bookings_DataFlow')]",
+				"[concat(variables('factoryId'), '/linkedServices/AirBnBAdls')]",
+				"[concat(variables('factoryId'), '/linkedServices/AirBnB_Synapse_ms')]"
 			]
 		}
 	]
