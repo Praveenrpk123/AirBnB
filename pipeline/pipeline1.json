@@ -1,0 +1,236 @@
+{
+	"name": "pipeline1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get List of files",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Customer_raw_data",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Each Files",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get List of files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get List of files').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Moving to Synapse",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "Customer_raw_data",
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"writeBehavior": "Upsert",
+									"upsertSettings": {
+										"keys": [
+											"customer_id"
+										],
+										"interimSchemaName": ""
+									},
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Customer_raw_data",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Customer_dim_data_synapse",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Moving to Archieve",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Moving to Synapse",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "Customer_raw_data",
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".csv"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Customer_raw_data",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Customer_archieve_data",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Deleting Raw Data",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Moving to Archieve",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Customer_raw_data",
+									"type": "DatasetReference"
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "AirBnBAdls",
+										"type": "LinkedServiceReference"
+									},
+									"path": "customersdata/raw_data_delete_logs"
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFileName": {
+										"value": "@item().name",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": []
+	}
+}
