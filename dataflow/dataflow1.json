@@ -16,8 +16,15 @@
 			"sinks": [],
 			"transformations": [
 				{
-					"name": "CustomerIdCheckSplit",
-					"description": "Customer Id should always be greater than zero."
+					"name": "conditionsplit",
+					"description": "Excluding Bad records"
+				},
+				{
+					"name": "DerivingColumns",
+					"description": "Deriving new column based on old columns"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -38,8 +45,45 @@
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     format: 'document') ~> BookingData",
-				"BookingData split(customer_id < 0,",
-				"     disjoint: true) ~> CustomerIdCheckSplit@(Customeridcheck, AcceptedRecords)"
+				"BookingData split(customer_id<=0 || check_in_date>check_out_date,",
+				"     disjoint: false) ~> conditionsplit@(Basicchecks, AcceptedRecords)",
+				"conditionsplit@AcceptedRecords derive(booking_id = booking_id,",
+				"          property_id = property_id,",
+				"          customer_id = customer_id,",
+				"          owner_id = owner_id,",
+				"          check_in_date = check_in_date,",
+				"          check_out_date = check_out_date,",
+				"          booking_date = booking_date,",
+				"          amount = case(currency != 'INR', amount*80 , amount),",
+				"          currency = \"INR\",",
+				"          city = property_location.city,",
+				"          country = property_location.country,",
+				"          full_address = concatWS(',',property_location.city,property_location.country),",
+				"          stay_duration = check_out_date - check_in_date,",
+				"          booking_year = year(booking_date),",
+				"          booking_month = month(booking_date),",
+				"          timestamp = timestamp) ~> DerivingColumns",
+				"DerivingColumns select(mapColumn(",
+				"          booking_id,",
+				"          property_id,",
+				"          customer_id,",
+				"          owner_id,",
+				"          check_in_date,",
+				"          check_out_date,",
+				"          booking_date,",
+				"          amount,",
+				"          currency,",
+				"          property_location,",
+				"          timestamp,",
+				"          city,",
+				"          country,",
+				"          full_address,",
+				"          stay_duration,",
+				"          booking_year,",
+				"          booking_month",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}
