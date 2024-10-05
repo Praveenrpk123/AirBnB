@@ -11,6 +11,13 @@
 					},
 					"name": "BookingData",
 					"description": "Bookings data from cosmos DB"
+				},
+				{
+					"dataset": {
+						"referenceName": "bookings_fact_synapse",
+						"type": "DatasetReference"
+					},
+					"name": "SynapeFacttable"
 				}
 			],
 			"sinks": [],
@@ -24,7 +31,7 @@
 					"description": "Deriving new column based on old columns"
 				},
 				{
-					"name": "select1"
+					"name": "lookupSynapse"
 				}
 			],
 			"scriptLines": [
@@ -45,6 +52,29 @@
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     format: 'document') ~> BookingData",
+				"source(output(",
+				"          booking_id as string,",
+				"          property_id as string,",
+				"          customer_id as integer,",
+				"          owner_id as string,",
+				"          check_in_date as date,",
+				"          check_out_date as date,",
+				"          booking_date as timestamp,",
+				"          amount as double,",
+				"          currency as string,",
+				"          city as string,",
+				"          country as string,",
+				"          full_address as string,",
+				"          stay_duration as long,",
+				"          booking_year as integer,",
+				"          booking_month as integer,",
+				"          timestamp as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SynapeFacttable",
 				"BookingData split(customer_id<=0 || check_in_date>check_out_date,",
 				"     disjoint: false) ~> conditionsplit@(Basicchecks, AcceptedRecords)",
 				"conditionsplit@AcceptedRecords derive(booking_id = booking_id,",
@@ -59,31 +89,14 @@
 				"          city = property_location.city,",
 				"          country = property_location.country,",
 				"          full_address = concatWS(',',property_location.city,property_location.country),",
-				"          stay_duration = check_out_date - check_in_date,",
+				"          stay_duration = toTimestamp(check_out_date) - toTimestamp(check_in_date),",
 				"          booking_year = year(booking_date),",
 				"          booking_month = month(booking_date),",
 				"          timestamp = timestamp) ~> DerivingColumns",
-				"DerivingColumns select(mapColumn(",
-				"          booking_id,",
-				"          property_id,",
-				"          customer_id,",
-				"          owner_id,",
-				"          check_in_date,",
-				"          check_out_date,",
-				"          booking_date,",
-				"          amount,",
-				"          currency,",
-				"          property_location,",
-				"          timestamp,",
-				"          city,",
-				"          country,",
-				"          full_address,",
-				"          stay_duration,",
-				"          booking_year,",
-				"          booking_month",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1"
+				"DerivingColumns, BookingData lookup(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookupSynapse"
 			]
 		}
 	}
