@@ -786,18 +786,28 @@
 								"parameters": {}
 							}
 						]
-					},
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Github_as_source')]",
+				"[concat(variables('factoryId'), '/datasets/Customer_raw_data')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
 					{
-						"name": "Delete_from_git",
+						"name": "Delete1",
 						"type": "Delete",
-						"dependsOn": [
-							{
-								"activity": "Copy data1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
+						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -812,7 +822,14 @@
 								"type": "DatasetReference",
 								"parameters": {}
 							},
-							"enableLogging": false,
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "AirBnBAdls",
+									"type": "LinkedServiceReference"
+								},
+								"path": "customersdata/raw_data_delete_logs"
+							},
+							"enableLogging": true,
 							"storeSettings": {
 								"type": "HttpReadSettings",
 								"requestMethod": "GET"
@@ -827,7 +844,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/Github_as_source')]",
-				"[concat(variables('factoryId'), '/datasets/Customer_raw_data')]"
+				"[concat(variables('factoryId'), '/linkedServices/AirBnBAdls')]"
 			]
 		},
 		{
