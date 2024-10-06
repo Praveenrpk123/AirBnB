@@ -29,7 +29,8 @@
 					"enableLogging": true,
 					"storeSettings": {
 						"type": "HttpReadSettings",
-						"requestMethod": "GET"
+						"requestMethod": "POST",
+						"requestTimeout": ""
 					}
 				}
 			}
