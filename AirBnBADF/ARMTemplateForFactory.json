@@ -1202,7 +1202,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "HttpServerLocation",
-						"relativeUrl": "Praveenrpk123/AirBnB/refs/heads/Customer_files/customer_data_2024_08_29_06_58.csv"
+						"relativeUrl": "Praveenrpk123/AirBnB/refs/heads/"
 					},
 					"columnDelimiter": ",",
 					"rowDelimiter": "\n",
