@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "Github_as_source",
+						"referenceName": "Github_as_source_copy1",
 						"type": "DatasetReference"
 					},
 					"logStorageSettings": {
