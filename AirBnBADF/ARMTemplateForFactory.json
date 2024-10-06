@@ -539,7 +539,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataset": {
-								"referenceName": "Github_as_source",
+								"referenceName": "Github_as_source_copy1",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -564,7 +564,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/Github_as_source')]",
+				"[concat(variables('factoryId'), '/datasets/Github_as_source_copy1')]",
 				"[concat(variables('factoryId'), '/linkedServices/AirBnBAdls')]"
 			]
 		},
@@ -1185,6 +1185,34 @@
 				"[concat(variables('factoryId'), '/datasets/Booking_src_Cosmos')]",
 				"[concat(variables('factoryId'), '/datasets/bookings_fact_synapse')]",
 				"[concat(variables('factoryId'), '/linkedServices/AirBnBAdls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Github_as_source_copy1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Githubfile_using_http",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "."
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Githubfile_using_http')]"
 			]
 		}
 	]
